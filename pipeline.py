@@ -4,25 +4,50 @@ import streamlit as st
 import numpy as np
 from datetime import datetime
 from unidecode import unidecode
+import os
 
 # Configurações da página
 st.set_page_config(page_title='Pipeline', layout='wide', page_icon='⚒️')
 
+# CONCATENAR ARQUIVOS --------------------
+# Definir o diretório onde os arquivos CSV estão armazenados
+download_dir = r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\downloads"
+combined_csv_path = os.path.join(download_dir, r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\raw\tabela_historico.csv")
+
+# Inicializar uma lista vazia para armazenar todos os DataFrames
+lista_dfs = []
+
+# Percorrer o diretório de downloads e carregar todos os arquivos CSV em DataFrames
+for file_name in os.listdir(download_dir):
+    if file_name.endswith('.csv'):
+        file_path = os.path.join(download_dir, file_name)
+        df = pd.read_csv(file_path)
+        lista_dfs.append(df)
+
+# Concatenar todos os DataFrames em um único DataFrame
+df = pd.concat(lista_dfs, ignore_index=True)
+
+# Salvar o DataFrame consolidado em um arquivo CSV
+df.to_csv(combined_csv_path, index=False, encoding='utf-8')
+print(f"Arquivo consolidado salvo em: {combined_csv_path}")
+
+# --------------------------------
+
 # Carregar os dados do CSV ou DataFrame existente
 df = pd.read_csv(r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\raw\tabela_historico.csv")
-df_usuarios = pd.read_csv(r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\raw\tabela_servidores.csv")
-df_objetos = pd.read_excel(r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\App Timeline HB\data\objetos.xlsx")
+# df_usuarios = pd.read_csv(r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\raw\tabela_servidores.csv")
+# df_objetos = pd.read_excel(r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\App Timeline HB\data\objetos.xlsx")
 
-# Definir tipo string
-df['Usuário'] = df['Usuário'].astype(str)
-df_usuarios['CPF1'] = df_usuarios['CPF1'].astype(str)
+# # Definir tipo string
+# df['Usuário'] = df['Usuário'].astype(str)
+# df_usuarios['CPF1'] = df_usuarios['CPF1'].astype(str)
 
 # Renomear colunas
 
 df.rename(columns={'numero_processo': 'Processo',
                    'Usuário': 'CPF'}, inplace=True)
-df_usuarios.rename(columns={'CPF1': 'CPF',
-                            'nome1': 'Nome'}, inplace=True)
+# df_usuarios.rename(columns={'CPF1': 'CPF',
+#                             'nome1': 'Nome'}, inplace=True)
 
 # Substituir '/' por '-' na coluna 'Data/Hora'
 df['Data/Hora'] = df['Data/Hora'].str.replace('/', '-')
@@ -60,8 +85,8 @@ def extrair_texto(descricao):
 df['Protocolo'], df['Documento'] = zip(*df['Descrição'].apply(extrair_texto))
 
 
-# Merge através do cpf do usuário
-df = pd.merge(df, df_usuarios, on='CPF', how='left')
+# # Merge através do cpf do usuário
+# df = pd.merge(df, df_usuarios, on='CPF', how='left')
 
 
 # ------------------------------
@@ -83,11 +108,10 @@ df_andamento = df[~df['Processo'].isin(lista_homologados) & ~df['Processo'].isin
 
 # Filtrar o DataFrame para manter as linhas que contêm "remetido" ou "assinado"
 df_andamento = df_andamento[df_andamento['Descrição'].str.contains(r'remetido|assinado', case=False, na=False)]
-df_andamento.drop(columns=['Órgao', 'data', 'id_nivel'], inplace=True)
+# df_andamento.drop(columns=['Órgao', 'data', 'id_nivel'], inplace=True)
 
 # Exclui todas as linhas onde a coluna 'Documento' contém valores vazios
 df_andamento = df_andamento.dropna(subset=['Documento'])
 
 # Salvar o DataFrame atualizado em um novo arquivo CSV
 df_andamento.to_csv(r'C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\App Timeline HB\data\df_andamento.csv', index=False)
-df_andamento

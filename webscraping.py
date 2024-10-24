@@ -1,15 +1,16 @@
+import os
+import re
+import time
 import pandas as pd
+from io import StringIO
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
-import os
-import time
-from io import StringIO
-import re
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.keys import Keys
 
 # Configuração do WebDriver
 service = Service(ChromeDriverManager().install())
@@ -38,7 +39,7 @@ orgao = driver.find_element(By.ID, 'selOrgao')
 usuario.send_keys('00840207255')
 senha.send_keys('Setembro10')
 orgao.send_keys('SEOSP')
-senha.send_keys(webdriver.common.keys.Keys.RETURN)
+driver.find_element(By.ID, 'pwdSenha').send_keys(Keys.RETURN)
 
 # Carregar os números de processo a partir do CSV
 csv_path = r"C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\BANCO DADOS HB\database\numeros_processos.csv"
@@ -65,7 +66,7 @@ def pesquisar_processo(numero_processo):
         )
         pesquisa.clear()
         pesquisa.send_keys(numero_processo)
-        pesquisa.send_keys(webdriver.common.keys.Keys.RETURN)
+        pesquisa.send_keys(Keys.RETURN)
         print(f"Processo {numero_processo} pesquisado.")
         time.sleep(2)  # Espera adicional para garantir que o conteúdo carregue
     except Exception as e:
@@ -75,7 +76,6 @@ def pesquisar_processo(numero_processo):
 def extrair_dados_tabela(numero_processo, nome_arquivo):
     # Criar um DataFrame vazio para armazenar todos os dados
     df_todos_dados = pd.DataFrame()
-    pagina_atual = 1
 
     while True:
         try:
@@ -95,22 +95,23 @@ def extrair_dados_tabela(numero_processo, nome_arquivo):
             # Adicionar os dados da tabela atual ao DataFrame total
             df_todos_dados = pd.concat([df_todos_dados, df_tabela], ignore_index=True)
 
-            # Verificar se há mais páginas
-            pagina_seletor = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="selInfraPaginacaoSuperior"]'))
-            )
-            total_opcoes = len(pagina_seletor.find_elements(By.TAG_NAME, 'option'))
-
-            if pagina_atual < total_opcoes:
-                pagina_atual += 1  # Incrementa para a próxima página
-                driver.execute_script(
-                    "arguments[0].value = arguments[1]; arguments[0].dispatchEvent(new Event('change'));", 
-                    pagina_seletor, pagina_atual
+            # Verificar se há o botão "Próxima Página"
+            try:
+                botao_proxima_pagina = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, 'lnkInfraProximaPaginaSuperior'))
                 )
-                print(f"Navegando para a página {pagina_atual}.")
-                time.sleep(1)  # Aguardar a tabela carregar
-            else:
-                break
+                if botao_proxima_pagina.is_displayed():
+                    # Clicar no botão "Próxima Página"
+                    driver.execute_script("arguments[0].click();", botao_proxima_pagina)
+                    print("Navegando para a próxima página.")
+                    time.sleep(2)  # Aguardar a tabela carregar
+                else:
+                    print("Botão 'Próxima Página' não disponível, encerrando a extração.")
+                    break  # Sai do loop se o botão não estiver visível
+            except TimeoutException:
+                print("Botão 'Próxima Página' não encontrado, encerrando a extração.")
+                break  # Sai do loop se o botão não puder ser encontrado
+
         except Exception as e:
             print(f"Erro ao extrair dados da tabela: {str(e)}")
             break

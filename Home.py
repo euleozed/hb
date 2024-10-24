@@ -14,7 +14,7 @@ df = pd.read_csv(r'./data/df_andamento.csv',
                  dtype={'Usuário': str,
                         'Protocolo': str},
                  parse_dates=['Data/Hora'])
-df_objeto = pd.read_excel(r'./data/database/objetos.xlsx')
+df_objeto = pd.read_excel(r'./data/objetos.xlsx')
 
 # Título
 st.markdown("<h1 style='text-align: center;'>LINHA DO TEMPO DE PROCESSOS ⏳</h1>", unsafe_allow_html=True)
@@ -33,13 +33,13 @@ qtd_processos = df['Processo'].nunique()
 df_termos = df[df['Documento'] == 'Termo de Referência'].groupby('Protocolo')['Documento'].size().reset_index()
 qtd_termos = df_termos['Protocolo'].count()
 
-df_qtd_documentos_gecomp = df[(df['Unidade'] == 'SESAU-GECOMP') &
+df_qtd_documentos = df[(df['Unidade'] == 'HB-GAD') &
     (~df['Documento'].str.contains('remetido', case=False, na=False))].groupby('Protocolo')['Documento'].size().reset_index()
-qtd_documentos_gecomp = df_qtd_documentos_gecomp['Protocolo'].count()
+qtd_documentos = df_qtd_documentos['Protocolo'].count()
 
 c1.metric("Quantidade de Processos na Base de Dados:", value=qtd_processos)
 c2.metric("Quantidade de Termos de Referência Elaborados:", qtd_termos)
-c3.metric("Quantidade de Documentos Elaborados pela GECOMP:", value=qtd_documentos_gecomp)
+c3.metric("Quantidade de Documentos Elaborados pela HB-GAD:", value=qtd_documentos)
 style_metric_cards(background_color= 'rainbow')
 
 
@@ -118,13 +118,14 @@ if processo_selecionado:
     qtd_termos = df_termos['Protocolo'].count()
     qtd_setores = df_selected['Unidade'].nunique()
     
-    df_qtd_documentos_gecomp = df_selected[(df_selected['Unidade'] == 'SESAU-GECOMP') &
+    df_qtd_documentos_gecomp = df_selected[(df_selected['Unidade'] == 'HB-GAD') &
     (~df_selected['Documento'].str.contains('remetido', case=False, na=False))].groupby('Protocolo')['Documento'].size().reset_index()
     qtd_documentos_gecomp = df_qtd_documentos_gecomp['Protocolo'].count()
 
+
     c1.metric("Quantidade de Termos de Referência no Processo:", qtd_termos)
     c1.metric("Quantidade de Setores Envolvidos:", qtd_setores)
-    c1.metric("Quantidade de Documentos Produzidos pela GECOMP:", qtd_documentos_gecomp)
+    c1.metric("Quantidade de Documentos Produzidos pela GAD-HB:", qtd_documentos_gecomp)
     
     # tempo em cada setor
     df_setor_prazos_geral = df_selected.groupby('Unidade').agg(Dias=("Dias entre Documentos", "sum")).nlargest(10, 'Dias').sort_values(by="Dias").reset_index()
@@ -161,14 +162,13 @@ if processo_selecionado:
 
     # Tabela da linha do tempo
     st.markdown(f"<h5 style='text-align: center;'>Tabela de Movimentações do Processo: {processo_escolhido}</h5>", unsafe_allow_html=True)
-    df_table = df_selected[['Unidade', 'Nome', 'Protocolo', 'Documento', 'Data Documento', 'Dias entre Documentos', 'Dias Acumulados']].sort_values(by='Dias Acumulados', ascending=False)
+    df_table = df_selected[['Unidade', 'Protocolo', 'Documento', 'Data Documento', 'Dias entre Documentos', 'Dias Acumulados']].sort_values(by='Dias Acumulados', ascending=False)
     st.dataframe(df_table, hide_index=True, width=1750, height=750)
 
     st.divider()
 
 else:
     st.write("Por favor, selecione um processo.")
-
 
 
 # ÁREA DE PROCESSOS ATRASADOS
@@ -186,7 +186,7 @@ df_atrasados['Data da Última Movimentação'] = pd.to_datetime(df_atrasados['Da
 data_hoje = datetime.now()
 
 # Calcular a diferença de dias entre 'Data da Última Movimentação' e a data de hoje
-df_atrasados['Dias desde a Última Movimentação'] = (data_hoje - df_atrasados['Data da Última Movimentação']).dt.days
+df_atrasados['Dias desde a Última Movimentação'] = (data_hoje - df_atrasados['Data da Última Movimentação']).dt.days # type: ignore
 
 # Formatar a data no formato dd-mm-aaaa
 df_atrasados['Data da Última Movimentação'] = df_atrasados['Data da Última Movimentação'].dt.strftime('%d-%m-%Y')
