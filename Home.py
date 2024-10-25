@@ -48,10 +48,10 @@ st.divider()
 df = df.sort_values(by=['Processo', 'Data/Hora']).reset_index(drop=True)
 
 # Converter a coluna 'Data' para datetime
-df['Data/Hora'] = pd.to_datetime(df['Data/Hora'])
+df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], format='%d-%m-%Y %H:%M')
 
 # Criando a coluna para a quantidade de dias entre o documento 2 e o documento 1
-df['Dias entre Documentos'] = df.groupby('Processo')['Data/Hora'].diff().dt.days
+df['Dias entre Documentos'] = df.groupby('Processo')['Data/Hora'].diff().dt.days +1
 
 # Criando a coluna para a quantidade de dias acumulados entre o primeiro documento e o documento atual
 df['Dias Acumulados'] = df.groupby('Processo')['Data/Hora'].transform(lambda x: (x - x.min()).dt.days)
@@ -90,7 +90,7 @@ if processo_selecionado:
         'Dias entre Documentos': 0,
         'Dias Acumulados': 0
     }
-
+    
     # Adicionando o novo registro ao DataFrame
     df_selected = pd.concat([df_selected, pd.DataFrame([novo_registro])], ignore_index=True)
 
@@ -98,7 +98,7 @@ if processo_selecionado:
     df_selected['Data'] = pd.to_datetime(df_selected['Data/Hora'])
 
     # Recalculando as colunas 'Dias entre Documentos' e 'Dias Acumulados'
-    df_selected['Dias entre Documentos'] = df_selected.groupby('Processo')['Data/Hora'].diff().dt.days
+    df_selected['Dias entre Documentos'] = df_selected.groupby('Processo')['Data/Hora'].diff().dt.days +1
     df_selected['Dias Acumulados'] = df_selected.groupby('Processo')['Data/Hora'].transform(lambda x: (x - x.min()).dt.days)
 
     # Ajustando os valores nulos de 'Dias entre Documentos'
