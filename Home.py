@@ -5,12 +5,12 @@ from streamlit_extras.metric_cards import style_metric_cards
 from datetime import datetime
 from email.mime.text import MIMEText
 
-
 # Configurações da página
 st.set_page_config(page_title='Timeline', layout='wide', page_icon='⏳', initial_sidebar_state='expanded')
 
+
 # Carregar arquivos
-df = pd.read_csv(r'./data/df_andamento.csv',
+df = pd.read_csv(r'./data/df.csv',
                  dtype={'Usuário': str,
                         'Protocolo': str},
                  parse_dates=['Data/Hora'])
@@ -19,16 +19,28 @@ df_objeto = pd.read_excel(r'./data/objetos.xlsx')
 # Título
 st.markdown("<h1 style='text-align: center;'>LINHA DO TEMPO DE PROCESSOS ⏳</h1>", unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------------
-
 # APRESENTAR A DATA DE ATUALIZAÇÃO
 
 # APRESENTAR A DATA DE ATUALIZAÇÃO
 today = datetime.now().strftime("%d/%m/%Y")
 st.text(f"Data da Última Atualização: {today}")
 
+# MÉTRICAS
+c1, c2, c3 = st.columns(3)
+qtd_processos = df['Processo'].nunique()
+
+
+c1.metric("Quantidade de Processos na Base de Dados:", value=qtd_processos)
+# c2.metric("Quantidade de Termos de Referência Elaborados:", qtd_termos)
+# c3.metric("Quantidade de Documentos Elaborados pelo HB:", value=qtd_documentos_hb)
+# style_metric_cards(background_color= 'rainbow')
+
+
 # st.markdown("<h3 style='text-align: center;'>LINHA DO TEMPO DE PROCESSOS EM ANDAMENTO</h3>", unsafe_allow_html=True)
 st.divider()
+
+
+
 
 # Convertendo 'Data/Hora' para datetime
 df['Data/Hora'] = pd.to_datetime(df['Data/Hora'], errors='coerce')
@@ -104,6 +116,19 @@ if processo_selecionado:
 
     # Converter a data para formato legível
     df_selected['Data Documento'] = df_selected['Data/Hora'].dt.strftime('%d/%m/%y')
+
+    
+    # df_termos = df_selected[df_selected['Documento'] == 'Termo de Referência'].groupby('Protocolo')['Documento'].size().reset_index()
+    # qtd_termos = df_termos['Protocolo'].count()
+
+    # df_qtd_documentos_hb = df_selected[(df_selected['Unidade'] == 'SESAU-HB') &
+    #     (~df['Documento'].str.contains('remetido', case=False, na=False))].groupby('Protocolo')['Documento'].size().reset_index()
+    # qtd_documentos_hb = df_qtd_documentos_hb['Protocolo'].count()
+
+    # c1.metric("Quantidade de Processos na Base de Dados:", value=qtd_processos)
+    # c2.metric("Quantidade de Termos de Referência Elaborados:", qtd_termos)
+    # c3.metric("Quantidade de Documentos Elaborados pelo HB:", value=qtd_documentos_hb)
+    # style_metric_cards(background_color= 'rainbow')
 
     
     # TABELA DE MOVIMENTAÇÕES
