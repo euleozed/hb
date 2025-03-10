@@ -1,7 +1,6 @@
 pandas
-numpy
 selenium
-streamlit
-plotly
-streamlit_extras
+webdriver-manager
+dotenv
 openpyxl
+unidecode

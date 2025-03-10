@@ -1,0 +1,47 @@
+import streamlit as st
+import gspread
+import pandas as pd
+from google.oauth2.service_account import Credentials
+
+# Defina o escopo
+scope = ["https://www.googleapis.com/auth/spreadsheets"]
+
+# Carregue as credenciais da conta de serviço
+credentials = Credentials.from_service_account_file(
+    r'C:\Users\00840207255\OneDrive - Minha Empresa\Aplicativos\App Timeline HB\credentials.json',
+    scopes=scope
+)
+
+# Autentique o cliente
+client = gspread.authorize(credentials) # type: ignore
+
+# Abra a planilha pelo ID
+spreadsheet_id = "1wVHQVxhUwJGuPHGb1is7hB6Pn9Hh-MUNmme6vw2HUdk"  # ID da sua planilha
+sheet = client.open_by_key(spreadsheet_id).sheet1  # Acesse a primeira aba da planilha
+
+# Obtenha todos os registros como uma lista de listas
+data = sheet.get_all_values()
+
+# Crie um DataFrame
+df = pd.DataFrame(data[1:], columns=data[0])  # O primeiro registro é usado como cabeçalho
+
+# Exiba o DataFrame no Streamlit
+st.write("Dados da Planilha:")
+st.dataframe(df)
+
+# Título do aplicativo
+st.title("Inserir Dados na Planilha")
+
+# Formulário para entrada de dados
+with st.form(key='my_form'):
+    n_contrato = st.text_input("Número do Contrato:")
+    mes_referencia = st.text_input("Mês de Referência (MM/AAAA):")
+    valor_nf = st.number_input("Valor da Nota Fiscal:", min_value=0.0, format="%.2f")
+
+    # Botão para enviar os dados
+    submit_button = st.form_submit_button("Inserir Dados")
+
+if submit_button:
+    # Adiciona os dados à planilha
+    sheet.append_row([n_contrato, mes_referencia, valor_nf])
+    st.success("Dados inseridos com sucesso!")

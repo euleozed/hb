@@ -1,0 +1,30 @@
+import pandas as pd
+import requests
+
+# URL do arquivo no SharePoint
+url = "https://leozed92-my.sharepoint.com/:x:/r/personal/leozed_leozed92_onmicrosoft_com/_layouts/15/Doc.aspx?sourcedoc=%7BEC36A3C3-F2FE-4B0C-A1B8-78274C0DE5AC%7D&file=database_hb.xlsx&action=default&mobileredirect=true"
+
+# Defina as credenciais
+username = "leozed@leozed92.onmicrosoft.com"  # Seu nome de usuário do SharePoint
+password = "(#)930Microsoft)"  # Sua senha do SharePoint
+
+# Autentique-se e baixe o arquivo
+session = requests.Session()
+session.auth = (username, password)
+
+response = session.get(url)
+
+if response.status_code == 200:
+    # Salve o conteúdo do arquivo Excel em um arquivo temporário
+    with open("temp_file.xlsx", "wb") as f:
+        f.write(response.content)
+
+    # Carregue a aba 'f_pagamentos'
+    df = pd.read_excel("temp_file.xlsx", sheet_name='f_pagamentos')
+
+    # Mostre as primeiras linhas do DataFrame
+    print(df.head())
+    df
+else:
+    print("Falha ao baixar o arquivo:", response.status_code)
+
