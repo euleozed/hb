@@ -73,19 +73,19 @@ def alternar_para_iframe(id_iframe):
     WebDriverWait(driver, 30).until(EC.frame_to_be_available_and_switch_to_it((By.ID, id_iframe)))
     print(f"Alternando para o iframe '{id_iframe}'.")
 
-# Função para realizar a pesquisa do processo
-def pesquisar_processo(Processo):
-    try:
-        pesquisa = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.ID, 'txtPesquisaRapida'))
-        )
-        pesquisa.clear()
-        pesquisa.send_keys(Processo)
-        pesquisa.send_keys(webdriver.common.keys.Keys.RETURN)
-        print(f"Processo {Processo} pesquisado.")
-        time.sleep(2)  # Espera adicional para garantir que o conteúdo carregue
-    except Exception as e:
-        print(f"Erro ao pesquisar o processo {Processo}: {str(e)}")
+# # Função para realizar a pesquisa do processo
+# def pesquisar_processo(Processo):
+#     try:
+#         pesquisa = WebDriverWait(driver, 30).until(
+#             EC.presence_of_element_located((By.ID, 'txtPesquisaRapida'))
+#         )
+#         pesquisa.clear()
+#         pesquisa.send_keys(Processo)
+#         pesquisa.send_keys(webdriver.common.keys.Keys.RETURN)
+#         print(f"Processo {Processo} pesquisado.")
+#         time.sleep(2)  # Espera adicional para garantir que o conteúdo carregue
+#     except Exception as e:
+#         print(f"Erro ao pesquisar o processo {Processo}: {str(e)}")
 
 # Função para extrair e salvar dados da tabela
 def pesquisar_processo(Processo):

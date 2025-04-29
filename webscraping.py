@@ -56,7 +56,7 @@ orgao.send_keys(orgao_env)
 senha.send_keys(Keys.RETURN)
 
 # Carregar os números de processo a partir do arquivo excel
-csv_path = 'objetos.xlsx'
+csv_path = './data/objetos.xlsx'
 df_documentos = pd.read_excel(csv_path, dtype={'numero_processo': str})
 
 # Função para substituir caracteres especiais por _

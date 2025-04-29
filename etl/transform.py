@@ -1,17 +1,22 @@
 import pandas as pd
+from supabase import create_client, Client
 import re
 import streamlit as st
 import numpy as np
 from datetime import datetime
-# from unidecode import unidecode
-import os
-
+import uuid
 
 # Carregar os dados do CSV ou DataFrame existente
 df = pd.read_csv("tabela_historico.csv")
 
+# Carregar objetos
+df_objetos = pd.read_excel("./data/objetos.xlsx")
+
+# Merge através do número do processo para trazer o objeto
+df = pd.merge(df, df_objetos, on='Processo', how='left')
+
 # Renomear colunas
-df.rename(columns={'numero_processo': 'Processo',
+df.rename(columns={'objeto': 'Objeto',
                    'Usuário': 'CPF'}, inplace=True)
 # df_usuarios.rename(columns={'CPF1': 'CPF',
 #                             'nome1': 'Nome'}, inplace=True)
@@ -52,10 +57,6 @@ def extrair_texto(descricao):
 df['Protocolo'], df['Documento'] = zip(*df['Descrição'].apply(extrair_texto))
 
 
-# # Merge através do cpf do usuário
-# df = pd.merge(df, df_usuarios, on='CPF', how='left')
-
-
 # -----------------------------
 
 
@@ -65,6 +66,9 @@ df = df[df['Descrição'].str.contains(r'remetido|assinado', case=False, na=Fals
 
 # Exclui todas as linhas onde a coluna 'Documento' contém valores vazios
 df = df.dropna(subset=['Documento'])
+
+# Adiciona uma coluna id unica
+df['id'] = [str(uuid.uuid4()) for _ in range(len(df))]
 
 # Salvar o DataFrame atualizado em um novo arquivo CSV
 df.to_csv(r'.\data\df.csv', index=False)
